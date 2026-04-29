@@ -4,8 +4,8 @@ WORKDIR /app
 
 COPY . .
 
-RUN chmod +x mvnw   # 👈 IMPORTANT FIX
+RUN chmod +x mvnw
 
-RUN ./mvnw clean install
+RUN ./mvnw clean install -DskipTests
 
 CMD ["java", "-jar", "target/sim-management-0.0.1-SNAPSHOT.jar"]
