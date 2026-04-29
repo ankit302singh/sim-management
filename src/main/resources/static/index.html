@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>SIM Manager</title>
+
+    <style>
+        table {
+            border-collapse: collapse;
+            width: 100%;
+            margin-top: 20px;
+        }
+
+        th, td {
+            border: 1px solid black;
+            padding: 10px;
+            text-align: center;
+        }
+
+        th {
+            background-color: lightgray;
+        }
+
+        button {
+            padding: 5px 10px;
+            margin: 2px;
+        }
+    </style>
+
+</head>
+<body>
+
+<h2>SIM Manager</h2>
+
+<!-- ================= ADD / UPDATE ================= -->
+<h3>Add / Update SIM</h3>
+
+<input type="hidden" id="simId">
+
+<input type="text" id="provider" placeholder="Provider"><br><br>
+<input type="text" id="mobileNo" placeholder="Mobile Number"><br><br>
+<input type="text" id="orgName" placeholder="Org Name"><br><br>
+
+<button onclick="saveSim()">Save SIM</button>
+
+<hr>
+
+<!-- ================= DOWNLOAD SAMPLE ================= -->
+<h3>Download Sample</h3>
+
+<a href="/sample.xlsx" download>
+    <button>Download Sample Excel</button>
+</a>
+
+<hr>
+
+<!-- ================= UPLOAD EXCEL ================= -->
+<h3>Upload Excel</h3>
+
+<input type="file" id="fileInput">
+<button onclick="uploadFile()">Upload</button>
+
+<hr>
+
+<!-- ================= SEARCH ================= -->
+<h3>Search SIM</h3>
+
+<input type="text" id="searchMobile" placeholder="Enter mobile number">
+<button onclick="searchSim()">Search</button>
+<button onclick="loadData()">Reset</button>
+
+<hr>
+
+<!-- ================= TABLE ================= -->
+<h3>SIM List</h3>
+
+<table>
+    <thead>
+        <tr>
+            <th>ID</th>
+            <th>Provider</th>
+            <th>Mobile Number</th>
+            <th>Org Name</th>
+            <th>Action</th>
+        </tr>
+    </thead>
+    <tbody id="tableBody"></tbody>
+</table>
+
+<script>
+
+// LOAD ALL DATA
+function loadData() {
+    fetch("http://localhost:8081/sims")
+        .then(res => res.json())
+        .then(data => displayData(data));
+}
+
+// DISPLAY TABLE
+function displayData(data) {
+    let table = document.getElementById("tableBody");
+
+    if (!data || data.length === 0) {
+        table.innerHTML = "<tr><td colspan='5'>No Data Found</td></tr>";
+        return;
+    }
+
+    let rows = "";
+
+    data.forEach(function(sim) {
+        rows += "<tr>" +
+            "<td>" + sim.id + "</td>" +
+            "<td>" + sim.provider + "</td>" +
+            "<td>" + sim.mobileNo + "</td>" +
+            "<td>" + sim.orgName + "</td>" +
+            "<td>" +
+                "<button onclick='editSim(" + sim.id + ", \"" + sim.provider + "\", \"" + sim.mobileNo + "\", \"" + sim.orgName + "\")'>Edit</button>" +
+                "<button onclick='deleteSim(" + sim.id + ")'>Delete</button>" +
+            "</td>" +
+        "</tr>";
+    });
+
+    table.innerHTML = rows;
+}
+
+// ADD / UPDATE
+function saveSim() {
+
+    let id = document.getElementById("simId").value;
+    let provider = document.getElementById("provider").value;
+    let mobileNo = document.getElementById("mobileNo").value;
+    let orgName = document.getElementById("orgName").value;
+
+    let method = id ? "PUT" : "POST";
+    let url = id ? "http://localhost:8081/sims/" + id : "http://localhost:8081/sims";
+
+    fetch(url, {
+        method: method,
+        headers: {
+            "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+            provider: provider,
+            mobileNo: mobileNo,
+            orgName: orgName
+        })
+    })
+    .then(res => {
+        if (!res.ok) {
+            return res.text().then(msg => { throw new Error(msg); });
+        }
+        return res.json();
+    })
+    .then(() => {
+        alert("Saved!");
+        clearForm();
+        loadData();
+    })
+    .catch(err => {
+        alert(err.message);
+    });
+}
+
+// EDIT
+function editSim(id, provider, mobileNo, orgName) {
+    document.getElementById("simId").value = id;
+    document.getElementById("provider").value = provider;
+    document.getElementById("mobileNo").value = mobileNo;
+    document.getElementById("orgName").value = orgName;
+}
+
+// CLEAR FORM
+function clearForm() {
+    document.getElementById("simId").value = "";
+    document.getElementById("provider").value = "";
+    document.getElementById("mobileNo").value = "";
+    document.getElementById("orgName").value = "";
+}
+
+// DELETE
+function deleteSim(id) {
+    fetch("http://localhost:8081/sims/" + id, {
+        method: "DELETE"
+    })
+    .then(() => {
+        alert("Deleted!");
+        loadData();
+    });
+}
+
+// SEARCH
+function searchSim() {
+    let mobileNo = document.getElementById("searchMobile").value;
+
+    fetch("http://localhost:8081/sims/search?mobileNo=" + mobileNo)
+        .then(res => res.json())
+        .then(data => displayData(data));
+}
+
+// EXCEL UPLOAD
+function uploadFile() {
+    let file = document.getElementById("fileInput").files[0];
+
+    if (!file) {
+        alert("Please select a file");
+        return;
+    }
+
+    let formData = new FormData();
+    formData.append("file", file);
+
+    fetch("http://localhost:8081/sims/upload", {
+        method: "POST",
+        body: formData
+    })
+    .then(res => res.text())
+    .then(msg => {
+        alert(msg);
+        loadData();
+    })
+    .catch(() => {
+        alert("Upload failed");
+    });
+}
+
+// AUTO LOAD
+loadData();
+
+</script>
+
+</body>
+</html>
