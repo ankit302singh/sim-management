@@ -1,96 +1,13 @@
-<!DOCTYPE html>
-<html>
-<head>
-    <title>SIM Manager</title>
-
-    <style>
-        table {
-            border-collapse: collapse;
-            width: 100%;
-            margin-top: 20px;
-        }
-
-        th, td {
-            border: 1px solid black;
-            padding: 10px;
-            text-align: center;
-        }
-
-        th {
-            background-color: lightgray;
-        }
-
-        button {
-            padding: 5px 10px;
-            margin: 2px;
-        }
-    </style>
-
-</head>
-<body>
-
-<h2>SIM Manager</h2>
-
-<!-- ================= ADD / UPDATE ================= -->
-<h3>Add / Update SIM</h3>
-
-<input type="hidden" id="simId">
-
-<input type="text" id="provider" placeholder="Provider"><br><br>
-<input type="text" id="mobileNo" placeholder="Mobile Number"><br><br>
-<input type="text" id="orgName" placeholder="Org Name"><br><br>
-
-<button onclick="saveSim()">Save SIM</button>
-
-<hr>
-
-<!-- ================= DOWNLOAD SAMPLE ================= -->
-<h3>Download Sample</h3>
-
-<a href="/sample.xlsx" download>
-    <button>Download Sample Excel</button>
-</a>
-
-<hr>
-
-<!-- ================= UPLOAD EXCEL ================= -->
-<h3>Upload Excel</h3>
-
-<input type="file" id="fileInput">
-<button onclick="uploadFile()">Upload</button>
-
-<hr>
-
-<!-- ================= SEARCH ================= -->
-<h3>Search SIM</h3>
-
-<input type="text" id="searchMobile" placeholder="Enter mobile number">
-<button onclick="searchSim()">Search</button>
-<button onclick="loadData()">Reset</button>
-
-<hr>
-
-<!-- ================= TABLE ================= -->
-<h3>SIM List</h3>
-
-<table>
-    <thead>
-        <tr>
-            <th>ID</th>
-            <th>Provider</th>
-            <th>Mobile Number</th>
-            <th>Org Name</th>
-            <th>Action</th>
-        </tr>
-    </thead>
-    <tbody id="tableBody"></tbody>
-</table>
-
 <script>
+
+// AUTO SWITCH URL
+const BASE_URL = window.location.hostname === "localhost"
+    ? "http://localhost:8081"
+    : "https://sim-management-uvtq.onrender.com";
 
 // LOAD ALL DATA
 function loadData() {
-    fetch("http://localhost:8081/sims")
+    fetch(BASE_URL + "/sims")
         .then(res => res.json())
         .then(data => displayData(data));
 }
@@ -131,7 +48,9 @@ function saveSim() {
     let orgName = document.getElementById("orgName").value;
 
     let method = id ? "PUT" : "POST";
-    let url = id ? "http://localhost:8081/sims/" + id : "http://localhost:8081/sims";
+    let url = id 
+        ? BASE_URL + "/sims/" + id 
+        : BASE_URL + "/sims";
 
     fetch(url, {
         method: method,
@@ -160,25 +79,9 @@ function saveSim() {
     });
 }
 
-// EDIT
-function editSim(id, provider, mobileNo, orgName) {
-    document.getElementById("simId").value = id;
-    document.getElementById("provider").value = provider;
-    document.getElementById("mobileNo").value = mobileNo;
-    document.getElementById("orgName").value = orgName;
-}
-
-// CLEAR FORM
-function clearForm() {
-    document.getElementById("simId").value = "";
-    document.getElementById("provider").value = "";
-    document.getElementById("mobileNo").value = "";
-    document.getElementById("orgName").value = "";
-}
-
 // DELETE
 function deleteSim(id) {
-    fetch("http://localhost:8081/sims/" + id, {
+    fetch(BASE_URL + "/sims/" + id, {
         method: "DELETE"
     })
     .then(() => {
@@ -191,12 +94,12 @@ function deleteSim(id) {
 function searchSim() {
     let mobileNo = document.getElementById("searchMobile").value;
 
-    fetch("http://localhost:8081/sims/search?mobileNo=" + mobileNo)
+    fetch(BASE_URL + "/sims/search?mobileNo=" + mobileNo)
         .then(res => res.json())
         .then(data => displayData(data));
 }
 
-// EXCEL UPLOAD
+// UPLOAD
 function uploadFile() {
     let file = document.getElementById("fileInput").files[0];
 
@@ -208,7 +111,7 @@ function uploadFile() {
     let formData = new FormData();
     formData.append("file", file);
 
-    fetch("http://localhost:8081/sims/upload", {
+    fetch(BASE_URL + "/sims/upload", {
         method: "POST",
         body: formData
     })
@@ -222,10 +125,15 @@ function uploadFile() {
     });
 }
 
+// FORM RESET
+function clearForm() {
+    document.getElementById("simId").value = "";
+    document.getElementById("provider").value = "";
+    document.getElementById("mobileNo").value = "";
+    document.getElementById("orgName").value = "";
+}
+
 // AUTO LOAD
 loadData();
 
 </script>
-
-</body>
-</html>
