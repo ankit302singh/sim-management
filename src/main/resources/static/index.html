@@ -81,16 +81,15 @@
 
 <script>
 
-// ✅ Run everything after page loads
 window.onload = function() {
 
-    // ✅ Auto switch URL (local + render)
+    // ✅ AUTO URL SWITCH
     const BASE_URL = window.location.hostname === "localhost"
         ? "http://localhost:8081"
         : "https://sim-management-uvtq.onrender.com";
 
-    // LOAD DATA
-    function loadData() {
+    // ================= LOAD DATA =================
+    window.loadData = function() {
         fetch(BASE_URL + "/sims")
             .then(res => res.json())
             .then(data => displayData(data))
@@ -100,11 +99,9 @@ window.onload = function() {
             });
     }
 
-    // DISPLAY TABLE
+    // ================= DISPLAY =================
     function displayData(data) {
         let table = document.getElementById("tableBody");
-
-        if (!table) return;
 
         if (!data || data.length === 0) {
             table.innerHTML = "<tr><td colspan='5'>No Data Found</td></tr>";
@@ -113,25 +110,29 @@ window.onload = function() {
 
         let rows = "";
 
-        data.forEach(function(sim) {
-            rows += "<tr>" +
-                "<td>" + sim.id + "</td>" +
-                "<td>" + sim.provider + "</td>" +
-                "<td>" + sim.mobileNo + "</td>" +
-                "<td>" + sim.orgName + "</td>" +
-                "<td>" +
-                    "<button onclick='editSim(" + sim.id + ", \"" + sim.provider + "\", \"" + sim.mobileNo + "\", \"" + sim.orgName + "\")'>Edit</button>" +
-                    "<button onclick='deleteSim(" + sim.id + ")'>Delete</button>" +
-                "</td>" +
-            "</tr>";
+        data.forEach(sim => {
+
+            rows += `
+                <tr>
+                    <td>${sim.id}</td>
+                    <td>${sim.provider}</td>
+                    <td>${sim.mobileNo}</td>
+                    <td>${sim.orgName}</td>
+                    <td>
+                        <button onclick="editSim(${sim.id}, '${sim.provider}', '${sim.mobileNo}', '${sim.orgName}')">Edit</button>
+                        <button onclick="deleteSim(${sim.id})">Delete</button>
+                    </td>
+                </tr>
+            `;
         });
 
         table.innerHTML = rows;
     }
 
-    // SAVE / UPDATE
+    // ================= SAVE =================
     window.saveSim = function() {
-        let id = document.getElementById("simId").value;
+
+        let id = document.getElementById("simId").value.trim();
         let provider = document.getElementById("provider").value;
         let mobileNo = document.getElementById("mobileNo").value;
         let orgName = document.getElementById("orgName").value;
@@ -143,14 +144,8 @@ window.onload = function() {
 
         fetch(url, {
             method: method,
-            headers: {
-                "Content-Type": "application/json"
-            },
-            body: JSON.stringify({
-                provider: provider,
-                mobileNo: mobileNo,
-                orgName: orgName
-            })
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ provider, mobileNo, orgName })
         })
         .then(res => {
             if (!res.ok) {
@@ -163,23 +158,45 @@ window.onload = function() {
             clearForm();
             loadData();
         })
-        .catch(err => {
-            alert(err.message);
-        });
+        .catch(err => alert(err.message));
     }
 
-    // DELETE
+    // ================= EDIT =================
+    window.editSim = function(id, provider, mobileNo, orgName) {
+        console.log("Edit clicked:", id);
+
+        document.getElementById("simId").value = id;
+        document.getElementById("provider").value = provider;
+        document.getElementById("mobileNo").value = mobileNo;
+        document.getElementById("orgName").value = orgName;
+    }
+
+    // ================= DELETE =================
     window.deleteSim = function(id) {
+
+        if (!id) {
+            alert("Invalid ID");
+            return;
+        }
+
         fetch(BASE_URL + "/sims/" + id, {
             method: "DELETE"
+        })
+        .then(res => {
+            if (!res.ok) throw new Error("Delete failed");
+            return res.text();
         })
         .then(() => {
             alert("Deleted!");
             loadData();
+        })
+        .catch(err => {
+            alert(err.message);
+            console.error(err);
         });
     }
 
-    // SEARCH
+    // ================= SEARCH =================
     window.searchSim = function() {
         let mobileNo = document.getElementById("searchMobile").value;
 
@@ -188,15 +205,7 @@ window.onload = function() {
             .then(data => displayData(data));
     }
 
-    // EDIT
-    window.editSim = function(id, provider, mobileNo, orgName) {
-        document.getElementById("simId").value = id;
-        document.getElementById("provider").value = provider;
-        document.getElementById("mobileNo").value = mobileNo;
-        document.getElementById("orgName").value = orgName;
-    }
-
-    // CLEAR FORM
+    // ================= CLEAR =================
     function clearForm() {
         document.getElementById("simId").value = "";
         document.getElementById("provider").value = "";
@@ -204,7 +213,7 @@ window.onload = function() {
         document.getElementById("orgName").value = "";
     }
 
-    // UPLOAD
+    // ================= UPLOAD =================
     window.uploadFile = function() {
         let file = document.getElementById("fileInput").files[0];
 
@@ -225,12 +234,10 @@ window.onload = function() {
             alert(msg);
             loadData();
         })
-        .catch(() => {
-            alert("Upload failed");
-        });
+        .catch(() => alert("Upload failed"));
     }
 
-    // INITIAL LOAD
+    // ================= INIT =================
     loadData();
 };
 
