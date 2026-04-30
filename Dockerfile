@@ -8,4 +8,6 @@ RUN chmod +x mvnw
 
 RUN ./mvnw clean install -DskipTests
 
-CMD ["java", "-jar", "target/sim-management-0.0.1-SNAPSHOT.jar"]
+EXPOSE 8080
+
+CMD ["sh", "-c", "java -Dserver.port=$PORT -jar target/sim-management-0.0.1-SNAPSHOT.jar"]
