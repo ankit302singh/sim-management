@@ -1,7 +1,7 @@
 package com.sim.management;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.http.ResponseEntity;
 import org.springframework.web.multipart.MultipartFile;
 import org.apache.poi.ss.usermodel.*;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
@@ -13,33 +13,27 @@ import java.util.*;
 @CrossOrigin(origins = "*")
 public class SimController {
 
-    // Temporary in-memory storage (instead of DB)
-    private List<Sim> sims = new ArrayList<>();
+    @Autowired
+    private SimService simService;
 
     // ✅ GET all sims
     @GetMapping
     public List<Sim> getAllSims() {
-        return sims;
+        return simService.getAll();
     }
 
     // ✅ ADD SIM
     @PostMapping
-    public ResponseEntity<?> addSim(@RequestBody Sim sim) {
-
-        for (Sim s : sims) {
-            if (s.getMobileNo().equals(sim.getMobileNo())) {
-                return ResponseEntity.badRequest().body("Mobile number already exists");
-            }
-        }
-
-        sims.add(sim);
-        return ResponseEntity.ok(sim);
+    public Sim addSim(@RequestBody Sim sim) {
+        return simService.add(sim);
     }
 
-    // ✅ UPLOAD FILE (Excel)
+    // ✅ UPLOAD EXCEL
     @PostMapping("/upload")
     public String uploadFile(@RequestParam("file") MultipartFile file) {
         try {
+            List<Sim> sims = new ArrayList<>();
+
             Workbook workbook = new XSSFWorkbook(file.getInputStream());
             Sheet sheet = workbook.getSheetAt(0);
 
@@ -61,12 +55,11 @@ public class SimController {
                 sim.setProvider(row.getCell(1).getStringCellValue());
                 sim.setOrgName(row.getCell(2).getStringCellValue());
 
-                boolean exists = sims.stream()
-                        .anyMatch(s -> s.getMobileNo().equals(mobileNo));
+                sims.add(sim);
+            }
 
-                if (!exists) {
-                    sims.add(sim);
-                }
+            for (Sim s : sims) {
+                simService.add(s);
             }
 
             workbook.close();
@@ -77,44 +70,22 @@ public class SimController {
         }
     }
 
-    // ✅ DELETE SIM
+    // ✅ DELETE
     @DeleteMapping("/{id}")
-    public String deleteSim(@PathVariable int id) {
-        if (id >= 0 && id < sims.size()) {
-            sims.remove(id);
-            return "Deleted successfully";
-        }
-        return "Invalid ID";
+    public String deleteSim(@PathVariable Long id) {
+        simService.delete(id);
+        return "Deleted successfully";
     }
 
-    // ✅ UPDATE SIM
+    // ✅ UPDATE
     @PutMapping("/{id}")
-    public ResponseEntity<?> updateSim(@PathVariable int id, @RequestBody Sim simDetails) {
-
-        if (id < 0 || id >= sims.size()) {
-            return ResponseEntity.badRequest().body("Invalid ID");
-        }
-
-        Sim sim = sims.get(id);
-
-        sim.setProvider(simDetails.getProvider());
-        sim.setMobileNo(simDetails.getMobileNo());
-        sim.setOrgName(simDetails.getOrgName());
-
-        return ResponseEntity.ok(sim);
+    public Sim updateSim(@PathVariable Long id, @RequestBody Sim simDetails) {
+        return simService.update(id, simDetails);
     }
 
     // ✅ SEARCH
     @GetMapping("/search")
-    public List<Sim> searchByMobile(@RequestParam String mobileNo) {
-        List<Sim> result = new ArrayList<>();
-
-        for (Sim sim : sims) {
-            if (sim.getMobileNo().contains(mobileNo)) {
-                result.add(sim);
-            }
-        }
-
-        return result;
+    public List<Sim> search(@RequestParam String mobileNo) {
+        return simService.search(mobileNo);
     }
 }
