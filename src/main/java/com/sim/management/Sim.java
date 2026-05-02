@@ -7,7 +7,7 @@ import jakarta.persistence.*;
 public class Sim {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @GeneratedValue(strategy = GenerationType.AUTO) // 🔥 CHANGE HERE
     private Long id;
 
     private String provider;
@@ -18,11 +18,8 @@ public class Sim {
     @Column(name = "org_name")
     private String orgName;
 
-    // ✅ Default constructor (IMPORTANT)
-    public Sim() {
-    }
+    public Sim() {}
 
-    // ✅ Getters
     public Long getId() {
         return id;
     }
@@ -39,7 +36,6 @@ public class Sim {
         return orgName;
     }
 
-    // ✅ Setters (VERY IMPORTANT)
     public void setId(Long id) {
         this.id = id;
     }
