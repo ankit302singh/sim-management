@@ -7,7 +7,8 @@ import jakarta.persistence.*;
 public class Sim {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.AUTO) // 🔥 CHANGE HERE
+    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "sim_seq")
+    @SequenceGenerator(name = "sim_seq", sequenceName = "sim_sequence", allocationSize = 1)
     private Long id;
 
     private String provider;
