@@ -1,273 +1,437 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>SIM Manager</title>
+    <meta charset="UTF-8">
+    <title>SIM Management Dashboard</title>
+
+    <!-- Bootstrap -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+
+    <!-- Icons -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
 
     <style>
-        table {
-            border-collapse: collapse;
-            width: 100%;
-            margin-top: 20px;
+
+        body {
+            background-color: #f4f7fc;
+            font-family: Arial, sans-serif;
         }
 
-        th, td {
-            border: 1px solid black;
+        .sidebar {
+            width: 240px;
+            height: 100vh;
+            position: fixed;
+            background: #1f2937;
+            color: white;
+            padding: 20px;
+        }
+
+        .sidebar h2 {
+            font-size: 24px;
+            margin-bottom: 30px;
+        }
+
+        .sidebar a {
+            display: block;
+            color: white;
+            text-decoration: none;
+            margin: 15px 0;
             padding: 10px;
+            border-radius: 8px;
+        }
+
+        .sidebar a:hover {
+            background: #374151;
+        }
+
+        .main-content {
+            margin-left: 260px;
+            padding: 25px;
+        }
+
+        .card-box {
+            border-radius: 15px;
+            color: white;
+            padding: 20px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        }
+
+        .table-container {
+            background: white;
+            padding: 20px;
+            border-radius: 15px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.08);
+        }
+
+        .form-section {
+            background: white;
+            padding: 20px;
+            border-radius: 15px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.08);
+        }
+
+        .section-title {
+            font-weight: bold;
+            margin-bottom: 20px;
+        }
+
+        .table thead {
+            background-color: #1f2937;
+            color: white;
+        }
+
+        .loader {
+            display: none;
             text-align: center;
+            margin-top: 15px;
+            font-weight: bold;
+            color: #0d6efd;
         }
 
-        th {
-            background-color: lightgray;
-        }
-
-        button {
-            padding: 5px 10px;
-            margin: 2px;
-        }
     </style>
 </head>
-
 <body>
 
-<h2>SIM Manager</h2>
+<!-- Sidebar -->
+<div class="sidebar">
+    <h2><i class="bi bi-phone"></i> SIM Manager</h2>
 
-<h3>Add / Update SIM</h3>
+    <a href="#dashboard"><i class="bi bi-speedometer2"></i> Dashboard</a>
+    <a href="#addSim"><i class="bi bi-plus-circle"></i> Add SIM</a>
+    <a href="#upload"><i class="bi bi-upload"></i> Upload Excel</a>
+    <a href="#search"><i class="bi bi-search"></i> Search SIM</a>
+    <a href="#table"><i class="bi bi-table"></i> SIM Data</a>
+</div>
 
-<input type="hidden" id="simId">
+<!-- Main Content -->
+<div class="main-content">
 
-<input type="text" id="provider" placeholder="Provider"><br><br>
-<input type="text" id="mobileNo" placeholder="Mobile Number"><br><br>
-<input type="text" id="orgName" placeholder="Org Name"><br><br>
+    <!-- Header -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h2>SIM Dashboard</h2>
+            <p class="text-muted">Manage your SIM inventory easily</p>
+        </div>
+    </div>
 
-<button onclick="saveSim()">Save SIM</button>
+    <!-- Dashboard Cards -->
+    <div class="row mb-4" id="dashboard">
 
-<hr>
+        <div class="col-md-3 mb-3">
+            <div class="card-box bg-primary">
+                <h5>Total SIMs</h5>
+                <h2 id="totalCount">0</h2>
+            </div>
+        </div>
 
-<h3>Download Sample</h3>
-<a href="/sample.xlsx" download>
-    <button>Download Sample Excel</button>
-</a>
+        <div class="col-md-3 mb-3">
+            <div class="card-box bg-success">
+                <h5>Jio SIMs</h5>
+                <h2 id="jioCount">0</h2>
+            </div>
+        </div>
 
-<hr>
+        <div class="col-md-3 mb-3">
+            <div class="card-box bg-danger">
+                <h5>Airtel SIMs</h5>
+                <h2 id="airtelCount">0</h2>
+            </div>
+        </div>
 
-<h3>Upload Excel</h3>
-<input type="file" id="fileInput">
-<button onclick="uploadFile()">Upload</button>
+        <div class="col-md-3 mb-3">
+            <div class="card-box bg-warning text-dark">
+                <h5>VI SIMs</h5>
+                <h2 id="viCount">0</h2>
+            </div>
+        </div>
 
-<hr>
+    </div>
 
-<h3>Search SIM</h3>
+    <!-- Add SIM -->
+    <div class="form-section mb-4" id="addSim">
 
-<input type="text" id="searchMobile" placeholder="Enter mobile number">
-<button onclick="searchSim()">Search</button>
-<button onclick="loadData()">Reset</button>
+        <h4 class="section-title">Add / Update SIM</h4>
 
-<hr>
+        <div class="row">
 
-<h3>SIM List</h3>
+            <div class="col-md-4 mb-3">
+                <label class="form-label">Provider</label>
+                <input type="text" id="provider" class="form-control">
+            </div>
 
-<table>
-    <thead>
-        <tr>
-            <th>ID</th>
-            <th>Provider</th>
-            <th>Mobile Number</th>
-            <th>Org Name</th>
-            <th>Action</th>
-        </tr>
-    </thead>
-    <tbody id="tableBody"></tbody>
-</table>
+            <div class="col-md-4 mb-3">
+                <label class="form-label">Mobile Number</label>
+                <input type="text" id="mobileNo" class="form-control">
+            </div>
+
+            <div class="col-md-4 mb-3">
+                <label class="form-label">Org Name</label>
+                <input type="text" id="orgName" class="form-control">
+            </div>
+
+        </div>
+
+        <button class="btn btn-primary" onclick="saveSim()">
+            <i class="bi bi-save"></i> Save SIM
+        </button>
+
+    </div>
+
+    <!-- Upload -->
+    <div class="form-section mb-4" id="upload">
+
+        <h4 class="section-title">Upload Excel</h4>
+
+        <div class="d-flex gap-3 align-items-center">
+            <input type="file" id="fileInput" class="form-control">
+
+            <button class="btn btn-success" onclick="uploadFile()">
+                <i class="bi bi-upload"></i> Upload
+            </button>
+        </div>
+
+        <div class="loader" id="uploadLoader">
+            Uploading data... Please wait.
+        </div>
+
+    </div>
+
+    <!-- Search -->
+    <div class="form-section mb-4" id="search">
+
+        <h4 class="section-title">Search SIM</h4>
+
+        <div class="d-flex gap-3">
+            <input type="text" id="searchMobile" class="form-control" placeholder="Enter mobile number">
+
+            <button class="btn btn-dark" onclick="searchSim()">
+                <i class="bi bi-search"></i> Search
+            </button>
+
+            <button class="btn btn-secondary" onclick="loadData()">
+                Reset
+            </button>
+        </div>
+
+    </div>
+
+    <!-- Table -->
+    <div class="table-container" id="table">
+
+        <h4 class="section-title">SIM List</h4>
+
+        <div class="table-responsive">
+            <table class="table table-bordered table-hover align-middle text-center">
+
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Provider</th>
+                        <th>Mobile Number</th>
+                        <th>Org Name</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+
+                <tbody id="simTableBody"></tbody>
+
+            </table>
+        </div>
+
+    </div>
+
+</div>
 
 <script>
 
-window.onload = function() {
+    const API_URL = '/sims';
 
-    const BASE_URL = window.location.hostname === "localhost"
-        ? "http://localhost:8081"
-        : "https://sim-management-uvtq.onrender.com";
+    let editingId = null;
 
-    // ================= LOAD =================
-    window.loadData = function() {
-        fetch(BASE_URL + "/sims")
-            .then(res => res.json())
-            .then(data => displayData(data))
-            .catch(() => {
-                document.getElementById("tableBody").innerHTML =
-                    "<tr><td colspan='5'>Backend not ready</td></tr>";
-            });
-    }
+    async function loadData() {
 
-    // ================= DISPLAY =================
-    function displayData(data) {
-        let table = document.getElementById("tableBody");
+        const response = await fetch(API_URL);
+        const sims = await response.json();
 
-        if (!data || data.length === 0) {
-            table.innerHTML = "<tr><td colspan='5'>No Data Found</td></tr>";
-            return;
-        }
+        const tableBody = document.getElementById('simTableBody');
+        tableBody.innerHTML = '';
 
-        let rows = "";
+        let jio = 0;
+        let airtel = 0;
+        let vi = 0;
 
-        data.forEach(sim => {
-            rows += `
+        sims.forEach(sim => {
+
+            if (sim.provider.toLowerCase() === 'jio') jio++;
+            if (sim.provider.toLowerCase() === 'airtel') airtel++;
+            if (sim.provider.toLowerCase() === 'vi') vi++;
+
+            tableBody.innerHTML += `
                 <tr>
-                    <td>${sim.id ?? ""}</td>
+                    <td>${sim.id}</td>
                     <td>${sim.provider}</td>
                     <td>${sim.mobileNo}</td>
                     <td>${sim.orgName}</td>
                     <td>
-                        <button onclick="editSim(${sim.id}, '${sim.provider}', '${sim.mobileNo}', '${sim.orgName}')">Edit</button>
-                        <button onclick="deleteSim(${sim.id})">Delete</button>
+                        <button class="btn btn-warning btn-sm" onclick="editSim(${sim.id}, '${sim.provider}', '${sim.mobileNo}', '${sim.orgName}')">
+                            Edit
+                        </button>
+
+                        <button class="btn btn-danger btn-sm" onclick="deleteSim(${sim.id})">
+                            Delete
+                        </button>
                     </td>
                 </tr>
             `;
         });
 
-        table.innerHTML = rows;
+        document.getElementById('totalCount').innerText = sims.length;
+        document.getElementById('jioCount').innerText = jio;
+        document.getElementById('airtelCount').innerText = airtel;
+        document.getElementById('viCount').innerText = vi;
     }
 
-    // ================= VALIDATION =================
-    function validateForm(provider, mobileNo, orgName) {
+    async function saveSim() {
+
+        const provider = document.getElementById('provider').value;
+        const mobileNo = document.getElementById('mobileNo').value;
+        const orgName = document.getElementById('orgName').value;
 
         if (!provider || !mobileNo || !orgName) {
-            alert("All fields are required");
-            return false;
-        }
-
-        if (!/^[0-9]{10}$/.test(mobileNo)) {
-            alert("Mobile number must be 10 digits");
-            return false;
-        }
-
-        return true;
-    }
-
-    // ================= SAVE =================
-    window.saveSim = function() {
-
-        let id = document.getElementById("simId").value.trim();
-        let provider = document.getElementById("provider").value.trim();
-        let mobileNo = document.getElementById("mobileNo").value.trim();
-        let orgName = document.getElementById("orgName").value.trim();
-
-        if (!validateForm(provider, mobileNo, orgName)) return;
-
-        let method = id ? "PUT" : "POST";
-        let url = id 
-            ? BASE_URL + "/sims/" + id 
-            : BASE_URL + "/sims";
-
-        fetch(url, {
-            method: method,
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ provider, mobileNo, orgName })
-        })
-        .then(res => {
-            if (!res.ok) return res.text().then(msg => { throw new Error(msg); });
-            return res.json();
-        })
-        .then(() => {
-            alert("Saved!");
-            clearForm();
-            loadData();
-        })
-        .catch(err => alert(err.message));
-    }
-
-    // ================= EDIT =================
-    window.editSim = function(id, provider, mobileNo, orgName) {
-
-        if (!id) {
-            alert("Invalid ID");
+            alert('Please fill all fields');
             return;
         }
 
-        document.getElementById("simId").value = id;
-        document.getElementById("provider").value = provider;
-        document.getElementById("mobileNo").value = mobileNo;
-        document.getElementById("orgName").value = orgName;
+        if (mobileNo.length !== 10) {
+            alert('Mobile number must be 10 digits');
+            return;
+        }
+
+        const simData = {
+            provider,
+            mobileNo,
+            orgName
+        };
+
+        let response;
+
+        if (editingId) {
+
+            response = await fetch(`${API_URL}/${editingId}`, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(simData)
+            });
+
+            editingId = null;
+
+        } else {
+
+            response = await fetch(API_URL, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(simData)
+            });
+        }
+
+        const message = await response.text();
+        alert(message);
+
+        document.getElementById('provider').value = '';
+        document.getElementById('mobileNo').value = '';
+        document.getElementById('orgName').value = '';
+
+        loadData();
     }
 
-    // ================= DELETE =================
-    window.deleteSim = function(id) {
+    function editSim(id, provider, mobileNo, orgName) {
 
-        if (!id) {
-            alert("Invalid ID");
-            return;
-        }
+        editingId = id;
 
-        if (!confirm("Are you sure you want to delete this SIM?")) {
-            return;
-        }
+        document.getElementById('provider').value = provider;
+        document.getElementById('mobileNo').value = mobileNo;
+        document.getElementById('orgName').value = orgName;
 
-        fetch(BASE_URL + "/sims/" + id, {
-            method: "DELETE"
-        })
-        .then(res => {
-            if (!res.ok) throw new Error("Delete failed");
-            return res.text();
-        })
-        .then(() => {
-            alert("Deleted!");
-            loadData();
-        })
-        .catch(err => {
-            alert(err.message);
-            console.error(err);
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    async function deleteSim(id) {
+
+        const confirmDelete = confirm('Are you sure you want to delete this SIM?');
+
+        if (!confirmDelete) return;
+
+        await fetch(`${API_URL}/${id}`, {
+            method: 'DELETE'
+        });
+
+        loadData();
+    }
+
+    async function searchSim() {
+
+        const mobileNo = document.getElementById('searchMobile').value;
+
+        const response = await fetch(`${API_URL}/search?mobileNo=${mobileNo}`);
+        const sims = await response.json();
+
+        const tableBody = document.getElementById('simTableBody');
+        tableBody.innerHTML = '';
+
+        sims.forEach(sim => {
+            tableBody.innerHTML += `
+                <tr>
+                    <td>${sim.id}</td>
+                    <td>${sim.provider}</td>
+                    <td>${sim.mobileNo}</td>
+                    <td>${sim.orgName}</td>
+                    <td>
+                        <button class="btn btn-warning btn-sm" onclick="editSim(${sim.id}, '${sim.provider}', '${sim.mobileNo}', '${sim.orgName}')">
+                            Edit
+                        </button>
+
+                        <button class="btn btn-danger btn-sm" onclick="deleteSim(${sim.id})">
+                            Delete
+                        </button>
+                    </td>
+                </tr>
+            `;
         });
     }
 
-    // ================= SEARCH =================
-    window.searchSim = function() {
-        let mobileNo = document.getElementById("searchMobile").value;
+    async function uploadFile() {
 
-        fetch(BASE_URL + "/sims/search?mobileNo=" + mobileNo)
-            .then(res => res.json())
-            .then(data => displayData(data));
-    }
+        const fileInput = document.getElementById('fileInput');
 
-    // ================= CLEAR =================
-    function clearForm() {
-        document.getElementById("simId").value = "";
-        document.getElementById("provider").value = "";
-        document.getElementById("mobileNo").value = "";
-        document.getElementById("orgName").value = "";
-    }
-
-    // ================= UPLOAD =================
-    window.uploadFile = async function() {
-
-        let file = document.getElementById("fileInput").files[0];
-
-        if (!file) {
-            alert("Please select a file");
+        if (!fileInput.files.length) {
+            alert('Please choose a file');
             return;
         }
 
-        let formData = new FormData();
-        formData.append("file", file);
+        document.getElementById('uploadLoader').style.display = 'block';
 
-        try {
-            const response = await fetch(BASE_URL + "/sims/upload", {
-                method: "POST",
-                body: formData
-            });
+        const formData = new FormData();
+        formData.append('file', fileInput.files[0]);
 
-            const msg = await response.text();
-            alert(msg);
+        const response = await fetch(`${API_URL}/upload`, {
+            method: 'POST',
+            body: formData
+        });
 
-            loadData();
+        const result = await response.text();
 
-        } catch (error) {
-            console.error(error);
-            alert("Upload failed");
-        }
+        document.getElementById('uploadLoader').style.display = 'none';
+
+        alert(result);
+
+        loadData();
     }
 
-    // ================= INIT =================
     loadData();
-};
 
 </script>
 
